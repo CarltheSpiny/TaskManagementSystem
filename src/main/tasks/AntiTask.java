@@ -1,4 +1,4 @@
-package main;
+package main.tasks;
 
 public class AntiTask {
 

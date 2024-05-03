@@ -1,6 +1,8 @@
-package main;
+package main.tasks;
 
-public class Task {
+import main.helpers.TimeHelper;
+
+public abstract class Task {
 
 	String name;
 	String type;
@@ -59,25 +61,27 @@ public class Task {
 		return this.name == task.name ? true : false;
 	}
 	
-	private void validate() {
-		// validate date: has the form YYYYMMDD as an integer
-		if (this.date >= 10000000) {
-			// has 8 digits
-			if (this.getMonth() > 0 && this.getMonth() < 13) {
-				if (this.getDay() > 0 && this.getDay() < 31) {
-					//return true;
-				}
-				//return false;
-			}
-			//return false;
-		}
-		// validate start time: a float rounded to the nearest 15 minutes
-		
-		// validate duration: 
-	}
-	
+	/**
+	 * Checks if the date, startTime, and duration are valid
+	 * @return true if all three are valid
+	 */
 	public boolean isTaskValid() {
-		return false;
+		if (!TimeHelper.isDateValid(this.getDate(), this.getMonth(), this.getDay()))
+			return false;
+		
+		// validate start time: is a float rounded to the nearest 15 minutes
+		if (!TimeHelper.isRounded(this.startTime) ) {
+			System.err.println("The start time is invalid");
+			return false;
+		}
+		
+		// validate duration: is a float rounded to the neaest 15 minutes
+		if (!TimeHelper.isRounded(this.duration)) {
+			System.err.println("The duration is invalid");
+			return false;
+		}
+		
+		return true;
 	}
 	
 	// <------------------ Output Utils -------------------------->
@@ -92,53 +96,21 @@ public class Task {
 		return Integer.parseInt(dateAsString.substring(4, 6));
 	}
 
-	/**
-	 * Get month name from the integer representing the month
-	 * @param month an integer from 1 to 12
-	 * @return
-	 */
-	private String getMonthName(int month) {
-		switch(month) {
-		case 1:
-			return "January";
-		case 2:
-			return "February";
-		case 3:
-			return "March";
-		case 4:
-			return "Apirl";
-		case 5:
-			return "May";
-		case 6:
-			return "June";
-		case 7:
-			return "July";
-		case 8:
-			return "August";
-		case 9:
-			return "September";
-		case 10:
-			return "October";
-		case 11:
-			return "November";
-		case 12:
-			return "December ";
-		default:
-			return "Error";
-		}
-	}
-
 	public int getDay() {
 		String dateAsString = Integer.toString(getDate());
 		return Integer.parseInt(dateAsString.substring(6, 8));
 	}
 	
 	public void prettyPrintDate() {
-		 System.out.println(this.getMonthName(this.getMonth()) + " " + this.getDay() + ", " + this.getYear());
+		 System.out.println(TimeHelper.getMonthName(this.getMonth()) + " " + this.getDay() + ", " + this.getYear());
 	}
 	
 	public void printTask() {
 		System.out.println(this.getName() + " | Type: " + this.getType());
 		System.out.println("Start Date: " + this.getDate() + " | Duration: " + this.getDuration());
+	}
+	
+	enum Tasktype {
+		NONE;
 	}
 }
