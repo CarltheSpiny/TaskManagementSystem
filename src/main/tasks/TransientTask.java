@@ -1,38 +1,70 @@
 package main.tasks;
 
 public class TransientTask extends Task {
-	TransientTasktype type;
+	TransientTaskType type;
 
 	/**
 	 * Default constructor to create a new transient task.
-	 * @param taskName
+	 * @param taskName a unique name
 	 * @param taskType the taskType from the list of valid types. Automatically turned into a string
-	 * @param startDate
-	 * @param startTime
-	 * @param taskDuration
+	 * @param startDate the start date in YYYYMMDD format
+	 * @param startTime the start time in 24-hour format
+	 * @param taskDuration the duration, rounded to the nearest 15 minutes, in decimal from
 	 */
-	public TransientTask(String taskName, TransientTasktype taskType, int startDate, float startTime, float taskDuration) {
+	public TransientTask(String taskName, TransientTaskType taskType, int startDate, float startTime, float taskDuration) {
 		super(taskName, taskType.getId(), startDate, startTime, taskDuration);
 		this.type = taskType;
 	}
 	
+	/**
+	 * Alternate constructor that takes a string instead of a TaskType. You should ensure the string matches the enum
+	 * name correctly or refrences to this.task will break
+	 * @param taskName a unique name
+	 * @param taskType the taskType as a string. the {@link TransientTask#type} will be set to the matching enum
+	 * @param startDate the start date in YYYYMMDD format
+	 * @param startTime the start time in 24-hour format
+	 * @param taskDuration the duration, rounded to the nearest 15 minutes, in decimal from
+	 */
+	public TransientTask(String taskName, String taskType, int startDate, float startTime, float taskDuration) {
+		super(taskName, taskType, startDate, startTime, taskDuration);
+		this.type = TransientTaskType.fromString(taskType);
+	}
+	
+	/**
+	 * Override of getType that returns the string representation of the enum
+	 */
 	@Override
 	public String getType() {
 		return this.type.getId();
 	}
 	
+	/**
+	 * The override of setType that uses a string to set the tasktype to a new one
+	 */
 	@Override
 	public void setType(String type) {
-		TransientTasktype taskFromString = TransientTasktype.fromString(type);
+		TransientTaskType taskFromString = TransientTaskType.fromString(type);
 		if (taskFromString != null)
 			super.setType(taskFromString.getId());
 		else
-			this.type = TransientTasktype.NONE;
+			this.type = TransientTaskType.NONE;
 	}
 	
+	public TransientTaskType getTransientType() {
+		return this.type;
+	}
+	
+	public void setType(TransientTaskType taskType) {
+		this.type = taskType;
+	}
+	
+	/**
+	 * The override for isTRaskValid that also checks that the taskType
+	 * is a type that isn't noe, which indicates the type is erroneous.
+	 */
 	@Override
 	public boolean isTaskValid() {
-		if (this.type.equals(TransientTasktype.NONE))
+		if (this.type.equals(TransientTaskType.NONE))
 			return false;
 		else
 			return super.isTaskValid();
@@ -44,7 +76,7 @@ public class TransientTask extends Task {
 	 * @author CTS
 	 *
 	 */
-	public enum TransientTasktype {
+	public enum TransientTaskType {
 		VISIT("Visit"),
 		SHOPPING("Shopping"),
 		APPOINTMENT("Appointment"),
@@ -52,7 +84,7 @@ public class TransientTask extends Task {
 		
 		String id;
 		
-		private TransientTasktype(String taskID) {
+		private TransientTaskType(String taskID) {
 			this.id = taskID;
 		}
 		
@@ -60,11 +92,17 @@ public class TransientTask extends Task {
 			return id;
 		}
 		
-		public static TransientTasktype fromString(String type) {
-	        for (TransientTasktype tasktype : TransientTasktype.values()) {
-	            if (tasktype.id.toLowerCase() == type.toLowerCase()) {
-	                return tasktype;
-	            }
+		/**
+		 * Get the transientTaskType from a string, assuming the string is spelled exactly like
+		 * the id in the enum constant
+		 * @param type
+		 * @return
+		 */
+		public static TransientTaskType fromString(String type) {
+	        for (TransientTaskType tasktype : TransientTaskType.values()) {
+	        	 if (tasktype.getId().equals(type)) {
+		                return tasktype;
+		            }
 	        }
 	        return null;
 	    }

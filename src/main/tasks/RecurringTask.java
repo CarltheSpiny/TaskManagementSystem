@@ -2,12 +2,22 @@ package main.tasks;
 
 import main.helpers.TimeHelper;
 
-public class RecurringTask extends Task{
+public class RecurringTask extends Task {
 	RecurringTaskType type;
 	int endDate;
 	int frequency;
 	
-	
+	/**
+	 * Default constructor for a recurring task using the TaskType Enum to ensure only the compatible
+	 * types are set on this Recurring Task
+	 * @param taskName a unique name
+	 * @param taskType a type from {@link RecurringTaskType}
+	 * @param startDate the date in YYYYMMDD format
+	 * @param endDate the end date in YYYYMMDD format
+	 * @param startTime the start time in 24-hour format as a decimal
+	 * @param taskDuration the duration in a decimal rounded to the nearest 15 minutes
+	 * @param taskFrequency the frequency of this task (either 1 for daily or 7 for weekly)
+	 */
 	public RecurringTask(String taskName, RecurringTaskType taskType, int startDate, int endDate, float startTime, float taskDuration, int taskFrequency) {
 		super(taskName, taskType.getId(), startDate, startTime, taskDuration);
 		this.type = taskType;
@@ -116,6 +126,12 @@ public class RecurringTask extends Task{
 		System.out.println("End Date: " + this.getEndDate() + " | Repeats: " + (this.getFrequency() == 1 ? " daily" : "weekly"));
 	}
 	
+	/**
+	 * An enum that represnets the 7 types a recurring task can be. this ensures
+	 * that only the compatible tasks can be added
+	 * @author CTS
+	 *
+	 */
 	public enum RecurringTaskType {
 		CLASS("Class"),
 		STUDY("Study"),
@@ -138,11 +154,11 @@ public class RecurringTask extends Task{
 		/**
 		 * Get the type from the string, assuming it is spelled correctly
 		 * @param type
-		 * @return
+		 * @return the type if any, else it will return null
 		 */
 		public static RecurringTaskType fromString(String type) {
 	        for (RecurringTaskType tasktype : RecurringTaskType.values()) {
-	            if (tasktype.id.toLowerCase() == type.toLowerCase()) {
+	            if (tasktype.getId().equals(type)) {
 	                return tasktype;
 	            }
 	        }

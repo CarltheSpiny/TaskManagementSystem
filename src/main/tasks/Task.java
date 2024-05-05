@@ -110,7 +110,7 @@ public abstract class Task {
 		System.out.println("Start Date: " + this.getDate() + " | Duration: " + this.getDuration());
 	}
 	
-	enum Tasktype {
+	public enum Tasktype {
 		NONE;
 	}
 }
