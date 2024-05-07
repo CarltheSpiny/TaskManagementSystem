@@ -3,270 +3,235 @@ package main.tasks;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class AntiTaskScheduler {
+public class AntiTask extends Task {
     private State currentState;
-    private AntiTask antiTask;
 
-    public AntiTaskScheduler() {
-        // Initial state: Null
-        currentState = new NullState();
+    public AntiTask(String name, String type, LocalDate date, LocalTime startTime, float duration) {
+        super(name, type, convertLocalDateToInt(date), convertLocalTimeToFloat(startTime), duration);
+        currentState = new NullState(this);
     }
 
     // Transition: Null -> Created
-    public void createTask(String name, String type, LocalDate date, LocalTime startTime, int duration) {
-        antiTask = new AntiTask(name, type, date, startTime, duration);
-        currentState = currentState.createTask();
+    public void createTask() {
+        currentState.createTask();
     }
 
     // Transition: Created -> Pending or Removed
     public void addToSchedule() {
-        currentState = currentState.addToSchedule();
+        currentState.addToSchedule();
     }
 
     // Transition: Pending -> Removed or Match
     public void findMatchWithRecurringTask() {
-        currentState = currentState.findMatchWithRecurringTask();
+        currentState.findMatchWithRecurringTask();
+    }
+
+    // Transition: Removed -> Null or Match -> Scheduled
+    public void scheduled() {
+        currentState.scheduled();
     }
 
     // Transition: Removed -> Null
     public void removed() {
-        currentState = currentState.removed();
+        currentState.removed();
     }
 
-    // Transition: Match -> Scheduled
-    public void scheduled() {
-        currentState = currentState.scheduled();
+    // Convert LocalDate to int format (YYYYMMDD)
+    private static int convertLocalDateToInt(LocalDate date) {
+        return Integer.parseInt(date.toString().replace("-", ""));
+    }
+
+    // Convert LocalTime to float format (24-hour format as a decimal)
+    private static float convertLocalTimeToFloat(LocalTime time) {
+        return time.getHour() + (time.getMinute() / 60.0f);
+    }
+
+    // Set current state
+    public void setCurrentState(State state) {
+        currentState = state;
     }
 }
 
 // Interface representing a state
 interface State {
-    State createTask();
-    State addToSchedule();
-    State findMatchWithRecurringTask();
-    State scheduled();
-    State removed();
+    void createTask();
+    void addToSchedule();
+    void findMatchWithRecurringTask();
+    void scheduled();
+    void removed();
 }
 
 // Null state
 class NullState implements State {
+    private AntiTask antiTask;
+
+    public NullState(AntiTask antiTask) {
+        this.antiTask = antiTask;
+    }
+
     @Override
-    public State createTask() {
+    public void createTask() {
         System.out.println("Anti-task created.");
-        return new CreatedState();
+        antiTask.setCurrentState(new CreatedState(antiTask));
     }
 
     @Override
-    public State addToSchedule() {
+    public void addToSchedule() {
         System.out.println("Error: Cannot add anti-task to schedule. Anti-task doesn't exist.");
-        return this;
     }
 
     @Override
-    public State findMatchWithRecurringTask() {
+    public void findMatchWithRecurringTask() {
         System.out.println("Error: Cannot find match for anti-task. Anti-task doesn't exist.");
-        return this;
     }
 
     @Override
-    public State scheduled() {
+    public void scheduled() {
         System.out.println("Error: Anti-task cannot be scheduled. Anti-task doesn't exist.");
-        return this;
     }
 
     @Override
-    public State removed() {
+    public void removed() {
         System.out.println("Error: Anti-task cannot be removed. Anti-task doesn't exist.");
-        return this;
     }
 }
 
 // Created state
 class CreatedState implements State {
+    private AntiTask antiTask;
+
+    public CreatedState(AntiTask antiTask) {
+        this.antiTask = antiTask;
+    }
+
     @Override
-    public State createTask() {
+    public void createTask() {
         System.out.println("Error: Anti-task already exists.");
-        return this;
     }
 
     @Override
-    public State addToSchedule() {
+    public void addToSchedule() {
         System.out.println("Anti-task added to schedule.");
-        return new PendingState();
+        antiTask.setCurrentState(new PendingState(antiTask));
     }
 
     @Override
-    public State findMatchWithRecurringTask() {
+    public void findMatchWithRecurringTask() {
         System.out.println("Error: Cannot find match for anti-task. Anti-task not yet added to schedule.");
-        return this;
     }
 
     @Override
-    public State scheduled() {
+    public void scheduled() {
         System.out.println("Error: Anti-task cannot be scheduled. Anti-task is not in pending state.");
-        return this;
     }
 
     @Override
-    public State removed() {
+    public void removed() {
         System.out.println("Error: Anti-task cannot be removed. Anti-task is not in pending state.");
-        return this;
     }
 }
 
 // Pending state
 class PendingState implements State {
+    private AntiTask antiTask;
+
+    public PendingState(AntiTask antiTask) {
+        this.antiTask = antiTask;
+    }
+
     @Override
-    public State createTask() {
+    public void createTask() {
         System.out.println("Error: Anti-task already exists.");
-        return this;
     }
 
     @Override
-    public State addToSchedule() {
+    public void addToSchedule() {
         System.out.println("Error: Anti-task is already in the schedule.");
-        return this;
     }
 
     @Override
-    public State findMatchWithRecurringTask() {
+    public void findMatchWithRecurringTask() {
         System.out.println("No match found for anti-task. Anti-task removed from schedule.");
-        return new RemovedState();
+        antiTask.setCurrentState(new RemovedState(antiTask));
     }
 
     @Override
-    public State scheduled() {
+    public void scheduled() {
         System.out.println("Anti-task scheduled.");
-        return new ScheduledState();
+        antiTask.setCurrentState(new ScheduledState(antiTask));
     }
 
     @Override
-    public State removed() {
+    public void removed() {
         System.out.println("Anti-task removed from schedule.");
-        return new RemovedState();
+        antiTask.setCurrentState(new RemovedState(antiTask));
     }
 }
 
 // Scheduled state
 class ScheduledState implements State {
+    private AntiTask antiTask;
+
+    public ScheduledState(AntiTask antiTask) {
+        this.antiTask = antiTask;
+    }
+
     @Override
-    public State createTask() {
+    public void createTask() {
         System.out.println("Error: Anti-task already exists.");
-        return this;
     }
 
     @Override
-    public State addToSchedule() {
+    public void addToSchedule() {
         System.out.println("Error: Anti-task is already in the schedule.");
-        return this;
     }
 
     @Override
-    public State findMatchWithRecurringTask() {
+    public void findMatchWithRecurringTask() {
         System.out.println("Error: Anti-task is already scheduled.");
-        return this;
     }
 
     @Override
-    public State scheduled() {
+    public void scheduled() {
         System.out.println("Error: Anti-task is already scheduled.");
-        return this;
     }
 
     @Override
-    public State removed() {
+    public void removed() {
         System.out.println("Error: Anti-task cannot be removed once scheduled.");
-        return this;
     }
 }
 
 // Removed state
 class RemovedState implements State {
+    private AntiTask antiTask;
+
+    public RemovedState(AntiTask antiTask) {
+        this.antiTask = antiTask;
+    }
+
     @Override
-    public State createTask() {
+    public void createTask() {
         System.out.println("Error: Anti-task already exists.");
-        return this;
     }
 
     @Override
-    public State addToSchedule() {
+    public void addToSchedule() {
         System.out.println("Error: Cannot add anti-task to schedule. Anti-task is removed.");
-        return this;
     }
 
     @Override
-    public State findMatchWithRecurringTask() {
+    public void findMatchWithRecurringTask() {
         System.out.println("Error: Cannot find match for anti-task. Anti-task is removed.");
-        return this;
     }
 
     @Override
-    public State scheduled() {
+    public void scheduled() {
         System.out.println("Error: Anti-task cannot be scheduled. Anti-task is removed.");
-        return this;
     }
 
     @Override
-    public State removed() {
+    public void removed() {
         System.out.println("Error: Anti-task already removed.");
-        return this;
     }
 }
-
-class AntiTask {
-    private String name;
-    private String type;
-    private LocalDate date;
-    private LocalTime startTime;
-    private int duration;
-
-    public AntiTask(String name, String type, LocalDate date, LocalTime startTime, int duration) {
-        this.name = name;
-        this.type = type;
-        this.date = date;
-        this.startTime = startTime;
-        this.duration = duration;
-    }
-
-    // Getters and setters
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public int getDuration() {
-        return duration;
-    }
-
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
-}
-
