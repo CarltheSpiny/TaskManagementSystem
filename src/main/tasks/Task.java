@@ -41,7 +41,7 @@ public abstract class Task {
 		this.date = date;
 	}
 	
-	public void setDuration(int duration) {
+	public void setDuration(float duration) {
 		this.duration = duration;
 	}
 	
