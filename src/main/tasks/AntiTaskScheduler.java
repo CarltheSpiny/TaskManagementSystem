@@ -1,7 +1,11 @@
 package main.tasks;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 public class AntiTaskScheduler {
     private State currentState;
+    private AntiTask antiTask;
 
     public AntiTaskScheduler() {
         // Initial state: Null
@@ -9,7 +13,8 @@ public class AntiTaskScheduler {
     }
 
     // Transition: Null -> Created
-    public void createTask() {
+    public void createTask(String name, String type, LocalDate date, LocalTime startTime, int duration) {
+        antiTask = new AntiTask(name, type, date, startTime, duration);
         currentState = currentState.createTask();
     }
 
@@ -207,3 +212,61 @@ class RemovedState implements State {
         return this;
     }
 }
+
+class AntiTask {
+    private String name;
+    private String type;
+    private LocalDate date;
+    private LocalTime startTime;
+    private int duration;
+
+    public AntiTask(String name, String type, LocalDate date, LocalTime startTime, int duration) {
+        this.name = name;
+        this.type = type;
+        this.date = date;
+        this.startTime = startTime;
+        this.duration = duration;
+    }
+
+    // Getters and setters
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+}
+
