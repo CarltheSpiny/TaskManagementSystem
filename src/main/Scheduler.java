@@ -1,6 +1,9 @@
 package main;
 
+import java.io.IOException;
 import java.util.*;
+
+import main.helpers.JsonHelper;
 import main.tasks.*;
 
 public class Scheduler {
@@ -127,5 +130,39 @@ public class Scheduler {
 	
 	public void editTask(String taskName) {
 		editTask(findTask(taskName));
+	}
+	
+	public void printTaskList() {
+		for (Task task$iterator : this.tasks) {
+			if (task$iterator instanceof TransientTask transienttask) {
+				transienttask.printTask();
+			}
+			
+			if (task$iterator instanceof RecurringTask recurringTask) {
+				recurringTask.printTask();
+			}
+			
+		}
+	}
+	
+	/**
+	 * write the current task list to a json file. You can specify
+	 * the name with this method.
+	 * @param outputFileName
+	 */
+	public void writeSchedule(String outputFileName) {
+		try {
+			JsonHelper.writeToJson(outputFileName, tasks);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Write the current task list to a json file. The default
+	 * file name will be 'schedule.json'.
+	 */
+	public void writeSchedule() {
+		writeSchedule("schedule");
 	}
 }

@@ -13,21 +13,40 @@ public class Main {
 	
 	public static final String SET_1_FILE_PATH = "../TaskManagementSystem/src/main/set1.json";
 	public static final String SET_2_FILE_PATH = "../TaskManagementSystem/src/main/set2.json";
+	private static final String DEFAULT_SCHEDULE = "../TaskManagementSystem/src/resources/schedule.json";
 
 	public static void main(String[] args) {
+		Scheduler scheduler = new Scheduler();
+		System.out.println("InitTest for Task");
 		Task testTask = new TransientTask("Dummy Task", TransientTaskType.APPOINTMENT, 20240501, 12.0F, 1.0F);
 		testTask.printTask();
-		System.out.println(RecurringTask.RecurringTaskType.fromString("Class"));
-		// testTask.prettyPrintDate();
+		scheduler.addTask(testTask);
 		System.out.println("Task valid? " + testTask.isTaskValid());
 		
 		RecurringTask testRecTask = new RecurringTask("Dummy Rec Task", RecurringTaskType.CLASS, 20240501, 20240507, 10F, 2.0F, 7);
 		testRecTask.printTask();
 		System.out.println("Task valid? " + testRecTask.isTaskValid());
-		
+		scheduler.addTask(testRecTask);
+		System.out.println("Printing current task in the scheduler to System.out: ================");
+		scheduler.printTaskList();
+		scheduler.writeSchedule();
+		System.out.println("Reading and Printing to Out tasks from schedule.json:");
+		try {
+			List<Task> scheduleFile;
+			scheduleFile = JsonHelper.parseJsonContent(JsonHelper.readJsonFile(DEFAULT_SCHEDULE));
+			for (Task task : scheduleFile) {
+	            task.printTask();
+	            System.out.println();
+	        }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		/**
+System.out.println();
 		doScenario1();
 		System.out.println();
 		doScenario2();
+**/
 		
 		
 	}

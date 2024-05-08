@@ -2,7 +2,11 @@ package main.helpers;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +19,7 @@ import main.tasks.TransientTask.TransientTaskType;
 public class JsonHelper {
 	
 	public static final String DEFAULT_NAME = "schedule.json";
-	public static final String DEFAULT_LOC = "";
+	private static final String DEFAULT_TASK_OUT = "../TaskManagementSystem/src/resources/";
 
 	/**
 	 * Parse JSON file without the help of a library. Does not validate tasks or input data.
@@ -98,6 +102,96 @@ public class JsonHelper {
             }
 	    }
 	    return taskList;
+	}
+	
+	/**
+	 * Write the schedule taskList into a file. This method does not need the outputPath 
+	 * and defaults to {@link JsonHelper#DEFAULT_TASK_OUT}.
+	 * @param fileOutput the name of the file (without extension)
+	 * @param taskList the taskList from the scheduler
+	 * @return true if the tasks were witten
+	 * @throws IOException
+	 */
+	public static boolean writeToJson(String fileOutput, List<Task> taskList) throws IOException {
+		return writeToJson(fileOutput, DEFAULT_TASK_OUT, taskList);
+	}
+	
+	/**
+	 * Write the schedule into a file. You can specify the output path with this method.
+	 * @param fileOutName the name of the file (without extension)
+	 * @param fileOutputPath the output path where the file will be stored
+	 * @param taskList the task list from the schedule
+	 * @return true if the task list was written to the file
+	 */
+	public static boolean writeToJson(String fileOutName, String fileOutputPath, List<Task> taskList) {
+		// we assume the task is validated, lets start printing out
+		 createOutDirectory(fileOutputPath);
+		 
+		 try (FileWriter fw = new FileWriter(fileOutputPath + "/" + fileOutName + ".json")) {
+			 fw.write("[\n");
+			 int count = taskList.size();
+			 int iterCount = 0;
+			 for (Task task$iteator : taskList) {
+				 String taskString = "\t" + convertTaskToJson(task$iteator);
+				 if (iterCount < count - 1) {
+					 taskString += ",\n";
+				 }
+				 fw.write(taskString);
+				 iterCount++;
+			 }
+			 fw.write("\n]");
+			 System.out.println("Schedule has been written to " + fileOutputPath + "/" + fileOutName + ".json");
+			 return true;
+		 } catch (Exception e) {
+			 e.printStackTrace();
+			 return false;
+		 }
+		
+	}
+	
+	/**
+	 *  Create the passed output directory if the path does not already exist
+	 * @param outPath
+	 * @return
+	 */
+	private static boolean createOutDirectory(String outPath) {
+		try {
+			Files.createDirectories(Paths.get(outPath));
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	/**
+	 * Converts the passed task into a JSON object. No need to cast the Task as it's actual type
+	 * @param task the task that will be turned into a sting JSON object
+	 * @return the string with the '{' and the '}'
+	 * @throws InvalidObjectException
+	 */
+	private static String convertTaskToJson(Task task) throws InvalidObjectException {
+		if (task instanceof TransientTask transientTask) {
+			String taskName = "\t\t\"Name\":" + "\"" + transientTask.getName() + "\",\n";
+			String taskType = "\t\t\"Type\":" + "\"" + transientTask.getType() + "\",\n";
+			String startDate = "\t\t\"Date\":" + "\"" + transientTask.getDate() + "\",\n";
+			String startTime = "\t\t\"StartTime\":" + "\"" + transientTask.getStartTime() + "\",\n";
+			String duration = "\t\t\"Duration\":" + "\"" + transientTask.getDuration() + "\"\n";
+			return "{\n" + taskName + taskType + startDate + startTime + duration + "\t}";
+			
+		} else if (task instanceof RecurringTask recurringTask) {
+			String taskName = "\t\t\"Name\":" + "\"" + recurringTask.getName() + "\",\n";
+			String taskType = "\t\t\"Type\":" + "\"" + recurringTask.getType() + "\",\n";
+			String startDate = "\t\t\"StartDate\":" + "\"" + recurringTask.getDate() + "\",\n";
+			String startTime = "\t\t\"StartTime\":" + "\"" + recurringTask.getStartTime() + "\",\n";
+			String duration = "\t\t\"Duration\":" + "\"" + recurringTask.getDuration() + "\",\n";
+			String endDate = "\t\t\"EndDate\":" + "\"" + recurringTask.getEndDate() + "\",\n";
+			String frequency = "\t\t\"Frequency\":" + "\"" + recurringTask.getFrequency() + "\"\n";
+			return "{\n" + taskName + taskType + startDate + startTime + duration + endDate + frequency + "\t}";
+			
+		} else {
+			throw new InvalidObjectException("Task could not be added");
+		}
 	}
 
 	/**
