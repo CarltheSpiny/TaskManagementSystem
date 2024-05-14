@@ -59,13 +59,15 @@ public class TransientTask extends Task {
 	}
 	
 	/**
-	 * The override for isTRaskValid that also checks that the taskType
-	 * is a type that isn't noe, which indicates the type is erroneous.
+	 * The override for isTaskValid that also checks that the taskType
+	 * is a type that isn't none, which indicates the type is erroneous.
 	 */
 	@Override
 	public boolean isTaskValid() {
-		if (this.type.equals(TransientTaskType.NONE))
+		if (this.type.equals(TransientTaskType.NONE)) {
+			System.err.println("Task Type is invalid!");
 			return false;
+		}
 		else
 			return super.isTaskValid();
 	}
@@ -104,7 +106,7 @@ public class TransientTask extends Task {
 		                return tasktype;
 		            }
 	        }
-	        return null;
+	        return TransientTaskType.NONE;
 	    }
 	}
 

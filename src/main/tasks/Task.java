@@ -66,18 +66,20 @@ public abstract class Task {
 	 * @return true if all three are valid
 	 */
 	public boolean isTaskValid() {
-		if (!TimeHelper.isDateValid(this.getDate(), this.getMonth(), this.getDay()))
+		if (!TimeHelper.isDateValid(this.getDate(), this.getMonth(), this.getDay())) {
+			System.err.println("Start Date is invalid!");
 			return false;
+		}
 		
 		// validate start time: is a float rounded to the nearest 15 minutes
 		if (!TimeHelper.isRounded(this.startTime) ) {
-			System.err.println("The start time is invalid");
+			System.err.println("The start time is invalid!");
 			return false;
 		}
 		
 		// validate duration: is a float rounded to the neaest 15 minutes
 		if (!TimeHelper.isRounded(this.duration)) {
-			System.err.println("The duration is invalid");
+			System.err.println("The duration is invalid!");
 			return false;
 		}
 		

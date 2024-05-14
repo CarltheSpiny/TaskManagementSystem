@@ -16,17 +16,27 @@ public class Main {
 	private static final String DEFAULT_SCHEDULE = "../TaskManagementSystem/src/resources/schedule.json";
 
 	public static void main(String[] args) {
-		Scheduler scheduler = new Scheduler();
+		/**
+Scheduler scheduler = new Scheduler();
 		System.out.println("InitTest for Task");
 		Task testTask = new TransientTask("Dummy Task", TransientTaskType.APPOINTMENT, 20240501, 12.0F, 1.0F);
 		testTask.printTask();
-		scheduler.addTask(testTask);
+		try {
+			scheduler.addTask(testTask);
+		} catch (Exception e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
 		System.out.println("Task valid? " + testTask.isTaskValid());
-		
 		RecurringTask testRecTask = new RecurringTask("Dummy Rec Task", RecurringTaskType.CLASS, 20240501, 20240507, 10F, 2.0F, 7);
 		testRecTask.printTask();
 		System.out.println("Task valid? " + testRecTask.isTaskValid());
-		scheduler.addTask(testRecTask);
+		try {
+			scheduler.addTask(testRecTask);
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		System.out.println("Printing current task in the scheduler to System.out: ================");
 		scheduler.printTaskList();
 		scheduler.writeSchedule();
@@ -41,12 +51,11 @@ public class Main {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		/**
-System.out.println();
+**/
+		System.out.println();
 		doScenario1();
 		System.out.println();
-		doScenario2();
-**/
+		//doScenario2();
 		
 		
 	}
@@ -57,26 +66,65 @@ System.out.println();
 	public static void doScenario1() {
 		System.out.println("*Scenario 1 Part 1: read contents of set1.json\n");
 		// TODO add the scheduler version that also checks the validity of these tasks
+		List<Task> scheduleFile = null;
 		try {
-			List<Task> scheduleFile;
+			
 			scheduleFile = JsonHelper.parseJsonContent(JsonHelper.readJsonFile(SET_1_FILE_PATH));
 			for (Task task : scheduleFile) {
 	            task.printTask();
 	            System.out.println();
 	        }
+			
+			Scheduler scheduler = new Scheduler(scheduleFile);
+			
+			System.out.println("Scenario 1 Part 2: Delete task 'Intern Interview' from the schedule");
+			scheduler.deleteTask("Intern Interview");
+			
+			System.out.println("Scenario 1 Part 3: Add task 'Intern Interview' to the schedule");
+			/**
+			 * Name: "Intern Interview"
+			 * Type: "Appointment"
+			 * Date: 20200427
+			 * StartTime: 17
+			 * Duration: 2.5
+			 */
+			TransientTask transientTask = new TransientTask("Intern Interview", TransientTaskType.APPOINTMENT, 20200427, 17F, 2.5F);
+			scheduler.addTask(transientTask);
+			
+			System.out.println("Scenario 1 Part 4: Add transient Task 'Watch a moive' and fail (No moive type)");
+			/**
+			 * Name: "Watch a movie"
+			 * Type: "Movie"
+			 * Date: 20200429
+			 * StartTime: 21.5
+			 * Duration: 2
+			 */
+			TransientTask transientTask2 = new TransientTask("Watch a moive", "Movie", 20200429, 21.5F, 2F);
+			try {
+				// handle here to avoid entire block stopping
+				scheduler.addTask(transientTask2);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			System.out.println("Scenario 1 Part 5: Add transient Task 'Watch a moive' and fail due to time conflict");
+			/**
+			 * Name: "Watch a movie"
+			 * Type: "Visit"
+			 * Date: 20200430
+			 * StartTime: 18.5
+			 * Duration: 2
+			 */
+			TransientTask transientTask3 = new TransientTask("Watch a moive", "Visit", 20200430, 18.5F, 2f);
+			try {
+				scheduler.addTask(transientTask3);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.err.println("Error caused by: ");
+				scheduler.getOverlapTask().printTask();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		
-		
-		System.out.println("Scenario 1 Part 2: Delete task 'Intern Interview' from the schedule");
-		
-		System.out.println("Scenario 1 Part 3: Add task 'Intern Interview' to the schedule");
-		
-		System.out.println("Scenario 1 Part 4: Add transient Task 'Watch a moive' and fail (No moive type)");
-		
-		System.out.println("Scenario 1 Part 5: Add transient Task 'Watch a moive' and fail due to time conflict");
 	}
 	
 	public static void doScenario2() {

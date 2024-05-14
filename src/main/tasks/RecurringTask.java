@@ -1,5 +1,8 @@
 package main.tasks;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 import main.helpers.TimeHelper;
 
 public class RecurringTask extends Task {
@@ -117,6 +120,29 @@ public class RecurringTask extends Task {
 	public int getEndDay() {
 		String dateAsString = Integer.toString(this.getEndDate());
 		return Integer.parseInt(dateAsString.substring(6, 8));
+	}
+	
+	public RecurringTask getNextOccurrance() {
+		GregorianCalendar calendar = new GregorianCalendar(getYear(), getMonth() - 1, getDay());
+		System.out.println("Set the time for this rec instance: " + calendar.getTime().toString());
+		System.out.println("Actual time for ref: " + this.getDate());
+		switch (this.frequency) {
+		case 1:
+			// occurs daily
+			
+			calendar.add(calendar.DAY_OF_MONTH, getFrequency());
+			String nextDate = calendar.get(calendar.YEAR) + calendar.get(calendar.MONTH) + calendar.get(calendar.DAY_OF_MONTH) + "";
+			System.out.println("Daily Freq: " +  calendar.getTime().toString());
+			RecurringTask nextRecurringTask = new RecurringTask(getName(), type, Integer.parseInt(nextDate), getEndDate(), startTime, duration, frequency);
+			break;
+		case 7:
+			calendar.add(calendar.DAY_OF_MONTH, getFrequency());
+			System.out.println("Weekly Freq: " +  calendar.getTime().toString());
+			break;
+		default:
+			break;
+		}
+		return null;
 	}
 	
 	@Override
