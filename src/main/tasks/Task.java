@@ -103,13 +103,17 @@ public abstract class Task {
 		return Integer.parseInt(dateAsString.substring(6, 8));
 	}
 	
+	public String getPrettyPrintDate() {
+		return TimeHelper.getMonthName(this.getMonth()) + " " + this.getDay() + ", " + this.getYear();
+	}
+	
 	public void prettyPrintDate() {
-		 System.out.println(TimeHelper.getMonthName(this.getMonth()) + " " + this.getDay() + ", " + this.getYear());
+		 System.out.println(getPrettyPrintDate());
 	}
 	
 	public void printTask() {
 		System.out.println(this.getName() + " | Type: " + this.getType());
-		System.out.println("Start Date: " + this.getDate() + " | Duration: " + this.getDuration());
+		System.out.println("Start Date: " + this.getPrettyPrintDate() + " | Duration: " + this.getDuration());
 	}
 	
 	public enum Tasktype {

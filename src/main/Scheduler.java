@@ -145,6 +145,7 @@ public class Scheduler {
 				break;
 			}
 		 	**/
+			System.out.println("Validating task");
 			// Catch any malformed task
 			if (!newTask.isTaskValid()) {
 				throw new Exception("Task is invalid");
@@ -153,7 +154,7 @@ public class Scheduler {
 			if (existingTask instanceof RecurringTask recurring$iterator)
 				if (newTask instanceof RecurringTask reccuringTask) {
 					if (reccuringTask.overlapsWith(recurring$iterator)) {
-						throw new Exception("Task overlaps with a recurring task instance");
+						throw new Exception("New Task overlaps with an Existing recurring task instance");
 					}
 				}
 			
@@ -162,7 +163,7 @@ public class Scheduler {
 		}
 		
 		tasks.add(i, newTask);
-		System.out.println("Added new task");
+		System.out.println("Added new task: " + newTask.getName());
 	}
 	
 	public void addAllTasks(List<Task> taskList) throws Exception {

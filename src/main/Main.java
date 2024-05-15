@@ -127,12 +127,18 @@ public class Main {
 	
 	public static void testRecurringOverlap() {
 		RecurringTask test1 = new RecurringTask("Play Fire Emblem", RecurringTaskType.WORK, 20240514, 20240529, 10.00f, 1f, 7);
-		RecurringTask test2 = new RecurringTask("Summer work", RecurringTaskType.WORK, 20240521, 20240601, 9.00f, 2f, 7);
+		RecurringTask test2 = new RecurringTask("Summer work", RecurringTaskType.WORK, 20240521, 20240619, 9.00f, 2f, 7);
 		Scheduler scheduler = new Scheduler();
 		try {
 			scheduler.addTask(test1);
-			scheduler.viewTask("Play Fire Emblem");
-			scheduler.addTask(test2);
+			List<RecurringTask> allOccurances = ((RecurringTask) scheduler.findTask("Play Fire Emblem")).getAllOccurances();
+			System.out.println("Printing all occurances of the task and if it overlaps:");
+			for (RecurringTask recurringTask$iterator : allOccurances) {
+				recurringTask$iterator.overlapsWith(test2);
+				recurringTask$iterator.printTask();
+				
+			}
+			//scheduler.addTask(test2);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
