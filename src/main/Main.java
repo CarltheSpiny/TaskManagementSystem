@@ -16,44 +16,9 @@ public class Main {
 	private static final String DEFAULT_SCHEDULE = "../TaskManagementSystem/src/resources/schedule.json";
 
 	public static void main(String[] args) {
-		/**
-Scheduler scheduler = new Scheduler();
-		System.out.println("InitTest for Task");
-		Task testTask = new TransientTask("Dummy Task", TransientTaskType.APPOINTMENT, 20240501, 12.0F, 1.0F);
-		testTask.printTask();
-		try {
-			scheduler.addTask(testTask);
-		} catch (Exception e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-		System.out.println("Task valid? " + testTask.isTaskValid());
-		RecurringTask testRecTask = new RecurringTask("Dummy Rec Task", RecurringTaskType.CLASS, 20240501, 20240507, 10F, 2.0F, 7);
-		testRecTask.printTask();
-		System.out.println("Task valid? " + testRecTask.isTaskValid());
-		try {
-			scheduler.addTask(testRecTask);
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		System.out.println("Printing current task in the scheduler to System.out: ================");
-		scheduler.printTaskList();
-		scheduler.writeSchedule();
-		System.out.println("Reading and Printing to Out tasks from schedule.json:");
-		try {
-			List<Task> scheduleFile;
-			scheduleFile = JsonHelper.parseJsonContent(JsonHelper.readJsonFile(DEFAULT_SCHEDULE));
-			for (Task task : scheduleFile) {
-	            task.printTask();
-	            System.out.println();
-	        }
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-**/
+		testRecurringOverlap();
 		System.out.println();
-		doScenario1();
+		//doScenario1();
 		System.out.println();
 		//doScenario2();
 		
@@ -159,4 +124,20 @@ Scheduler scheduler = new Scheduler();
 		 */
 		System.out.println("4. Read the file Set1.json. This should work.");
 	}
+	
+	public static void testRecurringOverlap() {
+		RecurringTask test1 = new RecurringTask("Play Fire Emblem", RecurringTaskType.WORK, 20240514, 20240529, 10.00f, 1f, 7);
+		RecurringTask test2 = new RecurringTask("Summer work", RecurringTaskType.WORK, 20240521, 20240601, 9.00f, 2f, 7);
+		Scheduler scheduler = new Scheduler();
+		try {
+			scheduler.addTask(test1);
+			scheduler.viewTask("Play Fire Emblem");
+			scheduler.addTask(test2);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
+
+

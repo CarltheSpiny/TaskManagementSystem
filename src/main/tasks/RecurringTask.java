@@ -8,7 +8,12 @@ import main.helpers.TimeHelper;
 public class RecurringTask extends Task {
 	RecurringTaskType type;
 	int endDate;
+	float endTime;
+	GregorianCalendar startGregorianDate;
+	GregorianCalendar endGregorianDate;
 	int frequency;
+	boolean isDummyInstance;
+	int dummyReps = 0;
 	
 	/**
 	 * Default constructor for a recurring task using the TaskType Enum to ensure only the compatible
@@ -26,6 +31,8 @@ public class RecurringTask extends Task {
 		this.type = taskType;
 		this.endDate = endDate;
 		this.frequency = taskFrequency;
+		this.startGregorianDate = new GregorianCalendar(this.getYear(), this.getMonth() - 1, this.getDay());
+		this.endGregorianDate = new GregorianCalendar(this.getEndYear(), this.getEndMonth() - 1, this.getEndDay());
 	}
 	
 	public int getEndDate() {
@@ -72,29 +79,15 @@ public class RecurringTask extends Task {
 	}
 	
 	/**
-	 * Override of the validation method that validates the EndDate and TaskType 
-	 * for recurring tasks
+	 * Get the end time (in 24 hour format) for this task. If the duration would cause
+	 * the time to go over 24, the time is wrapped to the right time (25 -> 1AM)
+	 * @return
 	 */
-	@Override
-	public boolean isTaskValid() {
-		if (!TimeHelper.isDateValid(this.getEndDate(), this.getEndMonth(), this.getEndDay())) {
-			System.out.println("The end date is invalid");
-			return false;
-		}
-		
-		if (this.type.equals(RecurringTaskType.NONE)) {
-			System.err.println("The task type is invalid");
-			return false;
-		}
-		
-		if (!(this.getFrequency() == 1 || this.getFrequency() == 7)) {
-			System.err.println("The frequency is invalid");
-			return false;
-		}
-		
-		return super.isTaskValid();
+	public float getEndTime() {
+		float endTime = this.getStartTime() + this.duration;
+		return endTime > 24 ? endTime-24 : endTime;
 	}
-	
+
 	/**
 	 * Get the year from the end date. Assumes the date is valid
 	 * @return
@@ -122,23 +115,122 @@ public class RecurringTask extends Task {
 		return Integer.parseInt(dateAsString.substring(6, 8));
 	}
 	
+	/**
+	 * We have to return a copy of the date beacuse any destructive updates will mess up the date
+	 * @return
+	 */
+	public GregorianCalendar getStartGregorianDate() {
+		return (GregorianCalendar) startGregorianDate.clone();
+	}
+	
+	public GregorianCalendar getEndGregorianDate() {
+		return (GregorianCalendar)endGregorianDate.clone();
+	}
+	
+	/**
+	 * Override of the validation method that validates the EndDate and TaskType 
+	 * for recurring tasks
+	 */
+	@Override
+	public boolean isTaskValid() {
+		if (!TimeHelper.isDateValid(this.getEndDate(), this.getEndMonth(), this.getEndDay())) {
+			System.out.println("The end date is invalid");
+			return false;
+		}
+		
+		if (this.type.equals(RecurringTaskType.NONE)) {
+			System.err.println("The task type is invalid");
+			return false;
+		}
+		
+		if (!(this.getFrequency() == 1 || this.getFrequency() == 7)) {
+			System.err.println("The frequency is invalid");
+			return false;
+		}
+		
+		return super.isTaskValid();
+	}
+
+	/**
+	 * returns wheter or not the passed task occurs during this task's occurances
+	 * @param recurringTask
+	 * @return false if the task doesn't overlap, true if there is an overlap
+	 */
+	public boolean overlapsWith(RecurringTask recurringTask) {
+		boolean validating = true;
+		RecurringTask nextInstance = this;
+		
+		System.out.println("check against the future occurances of this task");
+		while(validating) {
+			System.out.println("Checking if this task occurs on the same day");
+			if (recurringTask.getStartGregorianDate().compareTo(nextInstance.getStartGregorianDate()) == 0) {
+				// if the tasks happen on the same day, we should check if they occur at the same time
+				System.out.println("checking if the new task start time is during the time of the next occurance of a R! task");
+				if (recurringTask.getStartTime() >= nextInstance.getStartTime() || (recurringTask.getEndTime()) <= (nextInstance.getEndTime())) {
+					// first argument checks if the start time is greater than the start time of the nextInstance
+					// second argument checks if the endTime of the comparator task is within the endTiem of the nextInstance
+					System.err.println("The " + recurringTask.getName() + " task has an overlapping date with the "
+							+ this.getName() + " task");
+					return true;
+				} 
+			}
+			nextInstance = nextInstance.getNextOccurrance();
+			if (nextInstance != null) {
+				// if the next instance's date is the same as the end date, then we have checked all occurances
+				if (nextInstance.getStartGregorianDate().compareTo(this.getEndGregorianDate()) >= 0)
+					validating = false;
+			} else
+				return true;
+		}
+		System.out.println("No overlap found");
+		return false;
+	}
+	
 	public RecurringTask getNextOccurrance() {
-		GregorianCalendar calendar = new GregorianCalendar(getYear(), getMonth() - 1, getDay());
-		System.out.println("Set the time for this rec instance: " + calendar.getTime().toString());
-		System.out.println("Actual time for ref: " + this.getDate());
+		GregorianCalendar localStartDate = getStartGregorianDate();
+		GregorianCalendar localEndDate = getEndGregorianDate();
+		String dayString;
+		String monthString;
+		
+		/**
+if (this.isDummyInstance())
+			localStartDate.add(Calendar.DAY_OF_MONTH, getFrequency() * getDummyReps());
+**/
+;		// System.out.println("Set the time for this rec instance: " + startGregorianDate.getTime().toString());
+		// System.out.println("Actual time for ref: " + this.getDate());
 		switch (this.frequency) {
 		case 1:
 			// occurs daily
+			// next instance is +1 day, so lets advance the calender
+			localStartDate.add(Calendar.DAY_OF_MONTH, getFrequency());
+			if (localStartDate.compareTo(localEndDate) > 0) {
+				System.out.println("Next requested occurance is past end date: " + localStartDate.getTime().toString());
+				return null;
+			}
 			
-			calendar.add(calendar.DAY_OF_MONTH, getFrequency());
-			String nextDate = calendar.get(calendar.YEAR) + calendar.get(calendar.MONTH) + calendar.get(calendar.DAY_OF_MONTH) + "";
-			System.out.println("Daily Freq: " +  calendar.getTime().toString());
-			RecurringTask nextRecurringTask = new RecurringTask(getName(), type, Integer.parseInt(nextDate), getEndDate(), startTime, duration, frequency);
-			break;
+			dayString = localStartDate.get(Calendar.DAY_OF_MONTH) < 10 ? "0" + localStartDate.get(Calendar.DAY_OF_MONTH) : "" + localStartDate.get(Calendar.DAY_OF_MONTH);
+			monthString = localStartDate.get(Calendar.MONTH) < 10 ? "0" + (localStartDate.get(Calendar.MONTH) + 1) : "" + (localStartDate.get(Calendar.MONTH) + 1);
+			String nextDailyDate = localStartDate.get(Calendar.YEAR) + monthString + dayString;
+			System.out.println("Next Daily Occurance: " +  nextDailyDate);
+			RecurringTask nextDailyTask = new RecurringTask(getName(), type, Integer.parseInt(nextDailyDate), getEndDate(), startTime, duration, frequency);
+			return nextDailyTask;
 		case 7:
-			calendar.add(calendar.DAY_OF_MONTH, getFrequency());
-			System.out.println("Weekly Freq: " +  calendar.getTime().toString());
-			break;
+			// add 7 days to the start date
+			localStartDate.add(Calendar.DAY_OF_MONTH, getFrequency());
+			// if the new startDate is over the 
+			if (localStartDate.compareTo(localEndDate) >= 0) {
+				System.out.println("Next requested occurance is past end date: " + localStartDate.getTime().toString());
+				return null;
+			}
+			
+			dayString = localStartDate.get(Calendar.DAY_OF_MONTH) < 10 ? "0" + localStartDate.get(Calendar.DAY_OF_MONTH) : "" + localStartDate.get(Calendar.DAY_OF_MONTH);
+			monthString = localStartDate.get(Calendar.MONTH) < 10 ? "0" + (localStartDate.get(Calendar.MONTH) + 1) : "" + (localStartDate.get(Calendar.MONTH) + 1);
+			String nextWeeklyDate = "" + localStartDate.get(Calendar.YEAR) + monthString + dayString;
+			System.out.println("Next Weekly Occurance: " +  nextWeeklyDate);
+			RecurringTask nextWeeklyTask = new RecurringTask(getName(), type, Integer.parseInt(nextWeeklyDate), getEndDate(), startTime, duration, frequency);
+			nextWeeklyTask.setDummyInstance(true);
+			nextWeeklyTask.setDummyReps(nextWeeklyTask.getDummyReps()+1);
+			return nextWeeklyTask;
 		default:
 			break;
 		}
@@ -150,6 +242,22 @@ public class RecurringTask extends Task {
 		System.out.println(this.getName() + " | Type: " + this.getType());
 		System.out.println("Start Date: " + this.getDate() + " | Duration: " + this.getDuration());
 		System.out.println("End Date: " + this.getEndDate() + " | Repeats: " + (this.getFrequency() == 1 ? " daily" : "weekly"));
+	}
+	
+	public void setDummyInstance(boolean isDummyInstance) {
+		this.isDummyInstance = isDummyInstance;
+	}
+	
+	public boolean isDummyInstance() {
+		return isDummyInstance;
+	}
+	
+	public int getDummyReps() {
+		return dummyReps;
+	}
+	
+	public void setDummyReps(int dummyReps) {
+		this.dummyReps = dummyReps;
 	}
 	
 	/**

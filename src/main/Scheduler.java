@@ -129,31 +129,39 @@ public class Scheduler {
 		return true;
 	}
 	
-	public void addTask(Task task) throws Exception {
+	public void addTask(Task newTask) throws Exception {
 		// Check for overlap
-		if(overlap(task)) {
+		if(overlap(newTask)) {
 			System.err.println("Error: Task conflicts with existing tasks. Could not be added.");
 			return;
 		}
 		
 		int i = 0;
-		for(Task t : tasks){
-			if(task.getStartTime() < t.getStartTime()) {
+		for(Task existingTask : tasks){
+			/**
+				if(newTask.getStartTime() < existingTask.getStartTime()) {
 				// validation: is task startTime less than currentTask
+				System.err.println("");
 				break;
 			}
-			if (!task.isTaskValid()) {
+		 	**/
+			// Catch any malformed task
+			if (!newTask.isTaskValid()) {
 				throw new Exception("Task is invalid");
 			}
 			
-			if (task.getStartTime() + task.getDuration() <= t.getStartTime() + t.getDuration())
-				throw new Exception("Task overlaps an exisiting task: " + t.getName());
+			if (existingTask instanceof RecurringTask recurring$iterator)
+				if (newTask instanceof RecurringTask reccuringTask) {
+					if (reccuringTask.overlapsWith(recurring$iterator)) {
+						throw new Exception("Task overlaps with a recurring task instance");
+					}
+				}
 			
 			
 			i++;
 		}
 		
-		tasks.add(i, task);
+		tasks.add(i, newTask);
 		System.out.println("Added new task");
 	}
 	
