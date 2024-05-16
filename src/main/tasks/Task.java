@@ -1,5 +1,7 @@
 package main.tasks;
 
+import java.util.GregorianCalendar;
+
 import main.helpers.TimeHelper;
 
 public abstract class Task {
@@ -7,8 +9,10 @@ public abstract class Task {
 	String name;
 	String type;
 	int date;
+	GregorianCalendar startGregorianDate;
 	float startTime;
 	float duration;
+	String invalidReason;
 	
 	public Task(String taskName, String taskType, int startDate, float startTime, float taskDuration) {
 		this.name = taskName;
@@ -16,11 +20,17 @@ public abstract class Task {
 		this.date = startDate;
 		this.startTime = startTime;
 		this.duration = taskDuration;
+		this.startGregorianDate = new GregorianCalendar(this.getYear(), this.getMonth() - 1, this.getDay());
 	}
 	
 	public int getDate() {
 		return date;
 	}
+	
+	public GregorianCalendar getStartGregorianDate() {
+		return startGregorianDate;
+	}
+	
 	public float getDuration() {
 		return duration;
 	}
@@ -39,6 +49,10 @@ public abstract class Task {
 	
 	public void setDate(int date) {
 		this.date = date;
+	}
+	
+	public void setStartGregorianDate(GregorianCalendar startGregorianDate) {
+		this.startGregorianDate = startGregorianDate;
 	}
 	
 	public void setDuration(float duration) {
@@ -61,25 +75,33 @@ public abstract class Task {
 		return this.name == task.name ? true : false;
 	}
 	
+	public void setInvalidReason(String invalidReason) {
+		this.invalidReason = invalidReason;
+	}
+	
+	public String getInvalidReason() {
+		return invalidReason;
+	}
+	
 	/**
 	 * Checks if the date, startTime, and duration are valid
 	 * @return true if all three are valid
 	 */
 	public boolean isTaskValid() {
 		if (!TimeHelper.isDateValid(this.getDate(), this.getMonth(), this.getDay())) {
-			System.err.println("Start Date is invalid!");
+			this.setInvalidReason("Start Date is invalid!");
 			return false;
 		}
 		
 		// validate start time: is a float rounded to the nearest 15 minutes
 		if (!TimeHelper.isRounded(this.startTime) ) {
-			System.err.println("The start time is invalid!");
+			this.setInvalidReason("The start time is invalid!");
 			return false;
 		}
 		
 		// validate duration: is a float rounded to the neaest 15 minutes
 		if (!TimeHelper.isRounded(this.duration)) {
-			System.err.println("The duration is invalid!");
+			this.setInvalidReason("The duration is invalid!");
 			return false;
 		}
 		
@@ -111,9 +133,12 @@ public abstract class Task {
 		 System.out.println(getPrettyPrintDate());
 	}
 	
+	public String toString() {
+		return this.getName() + " | Type: " + this.getType() + "\n" + "Start Date: " + this.getPrettyPrintDate() + " | Start Time: " + this.getStartTime() + " | Duration: " + this.getDuration();
+	}
+	
 	public void printTask() {
-		System.out.println(this.getName() + " | Type: " + this.getType());
-		System.out.println("Start Date: " + this.getPrettyPrintDate() + " | Duration: " + this.getDuration());
+		System.out.println(this.toString());
 	}
 	
 	public enum Tasktype {

@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import main.tasks.AntiTask;
 import main.tasks.RecurringTask;
 import main.tasks.RecurringTask.RecurringTaskType;
 import main.tasks.Task;
@@ -20,6 +21,7 @@ public class JsonHelper {
 	
 	public static final String DEFAULT_NAME = "schedule.json";
 	private static final String DEFAULT_TASK_OUT = "../TaskManagementSystem/src/resources/";
+	private static List<AntiTask> antiTaskHolder;
 
 	/**
 	 * Parse JSON file without the help of a library. Does not validate tasks or input data.
@@ -28,6 +30,7 @@ public class JsonHelper {
 	 * @throws Exception When a task type could not be determined
 	 */
 	public static List<Task> parseJsonContent(String jsonContent) throws Exception {
+		antiTaskHolder = new ArrayList<>();
 	    String[] objects = jsonContent.split("\\},\\s*\\{");
 	    List<Task> taskList = new ArrayList<>(objects.length);
 	    for (String obj : objects) {
@@ -61,7 +64,7 @@ public class JsonHelper {
 		            	type = value;
 		            	if (RecurringTaskType.fromString(value) != null) {
 		            		taskType = TaskType.RECURRING;
-		            	} else if(TransientTask.TransientTaskType.fromString(value) != null) {
+		            	} else if(TransientTask.TransientTaskType.fromString(value) != TransientTaskType.NONE) {
 		            		taskType = TaskType.TRANSIENT;
 		            	} else if(value.equals("Cancellation")) {
 		            		taskType = TaskType.ANTI_TASK;
@@ -70,6 +73,7 @@ public class JsonHelper {
 		            	}
 		            	break;
 		            case "StartDate":
+		            case "Date":
 		            	date = Integer.parseInt(value);
 		            	break;
 		            case "StartTime":
@@ -96,9 +100,39 @@ public class JsonHelper {
             	taskList.add(transientTask);
             } else if (taskType.equals(TaskType.RECURRING)) {
             	RecurringTask recTask = new RecurringTask(name, RecurringTaskType.fromString(type), date, endDate, startTime, duration, frequency);
+            	if (!antiTaskHolder.isEmpty()) {
+            		for (int i = 0; i < antiTaskHolder.size(); i++) {
+            			AntiTask antiTask = antiTaskHolder.get(i);
+            			if (recTask.overlapsWith(antiTask)) {
+            				recTask.addAntiTask(antiTask);
+            				antiTaskHolder.remove(i);
+            			}
+            		}
+            	}
             	taskList.add(recTask);
             } else if (taskType.equals(TaskType.ANTI_TASK)) {
-            	
+            	AntiTask antiTask = new AntiTask(name, "Cancellation", date, startTime, duration);
+            	// anti-tasks are linked to existing reccuring tasks but are technically not a task
+            	// when reading from a file, the anti-task may come before a recurring task
+            	// we should hold on to it before adding it so we can attach it to the right task
+            	if (!taskList.isEmpty()) {
+            		// there are tasks in this list
+            		for (Task task$iterator : taskList) {
+            			if (task$iterator instanceof RecurringTask reccurringTask$iterator) {
+            				if (reccurringTask$iterator.overlapsWith(antiTask)) {
+            					reccurringTask$iterator.addAntiTask(antiTask);
+            					break;
+            				}
+            					
+            			} else {
+            				addAntiTask(antiTask);
+            			}
+            		}
+            		
+            	} else {
+            		// no tasks exisit yet, we should wait until a task is added
+            		addAntiTask(antiTask);
+            	}
             }
 	    }
 	    return taskList;
@@ -212,7 +246,16 @@ public class JsonHelper {
             return "Error";
         }
     }
-
+	
+	public static boolean addAntiTask(AntiTask antiTask) {
+		System.out.println("Anti-Task did not have matching recurring task, adding to holder");
+		return antiTaskHolder.add(antiTask);
+	}
+	
+	public static void clearAntiTaskList() {
+		antiTaskHolder.clear();
+	}
+	
 	/**
 	 * Constants that are used to determine what kind of Task to make in the
 	 * {@link JsonHelper#parseJsonContent(String)} method. {@link TaskType#NONE} is used to show 

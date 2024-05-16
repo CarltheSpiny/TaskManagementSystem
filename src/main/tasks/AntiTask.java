@@ -7,11 +7,16 @@ public class AntiTask extends Task {
     private State currentState;
 
     public AntiTask(String name, String type, LocalDate date, LocalTime startTime, float duration) {
-        super(name, type, convertLocalDateToInt(date), convertLocalTimeToFloat(startTime), duration);
+        this(name, type, convertLocalDateToInt(date), convertLocalTimeToFloat(startTime), duration);
         currentState = new NullState(this);
     }
 
-    // Transition: Null -> Created
+    public AntiTask(String name, String type, int date, float startTime, float duration) {
+    	super(name, type, date, startTime, duration);
+		// TODO Auto-generated constructor stub
+	}
+
+	// Transition: Null -> Created
     public void createTask() {
         currentState.createTask();
     }

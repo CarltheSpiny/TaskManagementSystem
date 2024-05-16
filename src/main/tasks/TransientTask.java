@@ -65,7 +65,7 @@ public class TransientTask extends Task {
 	@Override
 	public boolean isTaskValid() {
 		if (this.type.equals(TransientTaskType.NONE)) {
-			System.err.println("Task Type is invalid!");
+			this.setInvalidReason("Task Type is invalid!");
 			return false;
 		}
 		else

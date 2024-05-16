@@ -31,6 +31,7 @@ public class Scheduler {
 	 * @return
 	 */
 	private boolean overlap(Task task) {
+		// the time that a given task will end (for non-recurring tasks especially)
 		float endTime = task.getStartTime() + task.getDuration();
 		for(Task t: tasks) {
 			if(t.getDate() == task.getDate()) {
@@ -40,9 +41,6 @@ public class Scheduler {
 				}
 			}
 			
-			if (t instanceof RecurringTask reccuringTask) {
-				reccuringTask.getNextOccurrance();
-			}
 		}
 		
 		return false;
@@ -131,11 +129,12 @@ public class Scheduler {
 	
 	public void addTask(Task newTask) throws Exception {
 		// Check for overlap
+		System.out.println("Validating Task...");
+		/**
 		if(overlap(newTask)) {
-			System.err.println("Error: Task conflicts with existing tasks. Could not be added.");
-			return;
+			throw new Exception("\"" + newTask.getName() + "\" Task conflicts with existing task: \n" + this.getOverlapTask().toString());
 		}
-		
+		 **/
 		int i = 0;
 		for(Task existingTask : tasks){
 			/**
@@ -145,18 +144,30 @@ public class Scheduler {
 				break;
 			}
 		 	**/
-			System.out.println("Validating task");
 			// Catch any malformed task
 			if (!newTask.isTaskValid()) {
-				throw new Exception("Task is invalid");
+				throw new Exception("\"" + newTask.getName() + "\" Task is invalid: " + newTask.getInvalidReason());
 			}
 			
-			if (existingTask instanceof RecurringTask recurring$iterator)
-				if (newTask instanceof RecurringTask reccuringTask) {
-					if (reccuringTask.overlapsWith(recurring$iterator)) {
-						throw new Exception("New Task overlaps with an Existing recurring task instance");
+			if (existingTask instanceof RecurringTask reccuringTask) {
+				// the new task is a reccuring one, we got to make sure future tasks don't overlap
+				if (newTask instanceof AntiTask newAntiTask) {
+					if (!reccuringTask.overlapsWith(newTask)) {
+						throw new Exception("\"" + newTask.getName() + "\" AntiTask does not overlap with a Future Recurring Task");
+					} else {
+						reccuringTask.addAntiTask(newAntiTask);
+						return;
 					}
+					
+				} else if (reccuringTask.overlapsWith(newTask)) {
+						throw new Exception("\"" + newTask.getName() + "\" Task overlaps with a Future Recurring Task: \n" + reccuringTask.getInvalidReason());
 				}
+			} else if (newTask instanceof RecurringTask newRecurringTask) {
+				if (newRecurringTask.overlapsWith(existingTask)) {
+					throw new Exception("\"" + newTask.getName() + "\" Task overlaps with a Future Recurring Task");
+			}
+			}
+			
 			
 			
 			i++;
